@@ -26,6 +26,6 @@ Contributions are welcome! Please read the [contributing guide](docs/CONTRIBUTIN
 
 ## License
 
-Distributed under MIT License, please read the [license file](LICENSE) for more details.
+Distributed under MIT License, please read the [license](LICENSE) file for more details.
 
 _Made with ♥ [foomo](https://www.foomo.org) by [bestbytes](https://www.bestbytes.com)_

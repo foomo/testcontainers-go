@@ -11,7 +11,7 @@ export default defineConfig({
 			{
 				text: 'Overview',
 				items: [
-					{ text: 'About', link: '/' },
+					{ text: 'Introduction', link: '/' },
 				],
 			},
 			{
@@ -22,6 +22,7 @@ export default defineConfig({
 			},
 			{
 				text: 'Contributing',
+				collapsed: true,
 				items: [
 					{
 						text: "Guideline",
@@ -92,7 +93,7 @@ export default defineConfig({
 	],
 	markdown: {
 		theme: {
-			dark: 'one-dark-pro',
+			dark: 'github-dark',
 			light: 'github-light',
 		}
 	},

@@ -1,8 +1,9 @@
 .DEFAULT_GOAL:=help
 -include .makerc
 
-# --- Config ------------------------------------------------------------------
+# --- Config -----------------------------------------------------------------
 
+GOMODS=$(shell find . -type f -name go.mod)
 # Newline hack for error output
 define br
 
@@ -12,10 +13,10 @@ endef
 # --- Targets -----------------------------------------------------------------
 
 # This allows us to accept extra arguments
-%: .mise .lefthook
+%: go.work .mise .lefthook
 	@:
 
-# Ensure go.work file
+# Ensure file
 go.work:
 	@echo "〉initializing go work"
 	@go work init
@@ -30,6 +31,7 @@ ifeq (, $(shell command -v mise))
 endif
 	@mise install
 
+.PHONY: .lefthook
 # Configure git hooks for lefthook
 .lefthook:
 	@lefthook install --reset-hooks-path
@@ -38,53 +40,68 @@ endif
 
 .PHONY: check
 ## Run lint & tests
-check: tidy generate lint test
-
-.PHONY: tidy
-## Run go mod tidy
-tidy:
-	@echo "〉go mod tidy"
-	@go mod tidy
+check: tidy generate lint.fix test audit
 
 .PHONY: lint
 ## Run linter
 lint:
 	@echo "〉go lint"
-	@golangci-lint run
+	@$(foreach mod,$(GOMODS), (cd $(dir $(mod)) && echo "📂 $(dir $(mod))" && golangci-lint run) &&) true
 
 .PHONY: lint.fix
 ## Run linter and fix violations
 lint.fix:
 	@echo "〉go lint with --fix"
-	@golangci-lint run --fix
+	@$(foreach mod,$(GOMODS), (cd $(dir $(mod)) && echo "📂 $(dir $(mod))" && golangci-lint run --fix) &&) true
 
 .PHONY: generate
 ## Run go generate
-generate: go.work
+generate:
 	@echo "〉go generate"
 	@go generate work
 
 .PHONY: test
 ## Run tests
-test: go.work
+test:
 	@echo "〉go test"
 	@GO_TEST_TAGS=-skip go test -tags=safe -coverprofile=coverage.out work
 
 .PHONY: test.race
 ## Run tests with -race
-test.race: go.work
+test.race:
 	@GO_TEST_TAGS=-skip go test -tags=safe -coverprofile=coverage.out -race work
 
-.PHONY: test.update
-## Run tests with -update
-test.update: go.work
-	@GO_TEST_TAGS=-skip go test -tags=safe -coverprofile=coverage.out -update work
+### Security
+
+.PHONY: audit
+## Run security audit
+audit:
+	@echo "〉security audit"
+	@go install golang.org/x/vuln/cmd/govulncheck@latest
+	@$(foreach mod,$(GOMODS), (cd $(dir $(mod)) && echo "📂 $(dir $(mod))" && govulncheck ./...) &&) true
+
+### Dependencies
+
+.PHONY: tidy
+## Run go mod tidy
+tidy:
+	@echo "〉go mod tidy"
+	@$(foreach mod,$(GOMODS), (cd $(dir $(mod)) && echo "📂 $(dir $(mod))" && go mod tidy) &&) true
+	@go work sync
 
 .PHONY: outdated
 ## Show outdated direct dependencies
 outdated:
 	@echo "〉go mod outdated"
-	@go list -u -m -json all | go-mod-outdated -update -direct
+	@$(foreach mod,$(GOMODS), (cd $(dir $(mod)) && echo "📂 $(dir $(mod))" && go list -u -m -json all | go-mod-outdated -update -direct) &&) true
+
+.PHONY: upgrade
+## Show outdated direct dependencies
+upgrade:
+	@echo "〉go mod upgrade"
+	@rm -f go.work go.work.sum
+	@$(foreach mod,$(GOMODS), (cd $(dir $(mod)) && echo "📂 $(dir $(mod))" && go list -u -m -f '{{if and (not .Indirect) .Update}}{{.Path}}{{end}}' all | xargs -n1 -I{} go get {}@latest) &&) true
+	@$(MAKE) tidy
 
 ### Documentation
 
@@ -109,20 +126,32 @@ godocs:
 ### Utils
 
 .PHONY: help
+# https://patorjk.com/software/taag/#p=display&f=Tmplr&t=testcontainers&x=none&v=4&h=4&w=80&we=false
 ## Show help text
+help: g=\033[0;32m
+help: b=\033[0;34m
+help: w=\033[0;90m
+help: e=\033[0m
 help:
-	@echo "Testcontainers\n"
-	@echo "Usage:\n  make [task]"
+	@echo "$(g)"
+	@echo "             •"
+	@echo "╋┏┓┏╋┏┏┓┏┓╋┏┓┓┏┓┏┓┏┓┏"
+	@echo "┗┗ ┛┗┗┗┛┛┗┗┗┻┗┛┗┗ ┛ ┛"
+	@echo "with ❤ foomo by bestbytes"
+	@echo "$(e)"
+	@echo "$(b)Usage:$(e)\n  make [task]"
 	@awk '{ \
 		if($$0 ~ /^### /){ \
-			if(help) printf "%-23s %s\n\n", cmd, help; help=""; \
-			printf "\n%s:\n", substr($$0,5); \
+			if(help) printf "  %-21s $(w)%s$(e)\n\n", cmd, help; help=""; \
+			printf "$(b)\n%s:$(e)\n", substr($$0,5); \
 		} else if($$0 ~ /^[a-zA-Z0-9._-]+:/){ \
 			cmd = substr($$0, 1, index($$0, ":")-1); \
-			if(help) printf "  %-23s %s\n", cmd, help; help=""; \
+			if(help) printf "  %-21s $(w)%s$(e)\n", cmd, help; help=""; \
 		} else if($$0 ~ /^##/){ \
 			help = help ? help "\n                        " substr($$0,3) : substr($$0,3); \
 		} else if(help){ \
-			print "\n                        " help "\n"; help=""; \
+			print "\n                        $(w)" help "$(e)\n"; help=""; \
 		} \
 	}' $(MAKEFILE_LIST)
+	@echo ""
+

@@ -17,6 +17,7 @@ export default defineConfig({
 			{
 				text: 'Modules',
 				items: [
+					{ text: 'RustFS', link: '/modules/rustfs' },
 					{ text: 'Temporal', link: '/modules/temporal' },
 				],
 			},

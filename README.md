@@ -1,6 +1,6 @@
 [![Go Report Card](https://goreportcard.com/badge/github.com/foomo/testcontainers-go?style=flat-square)](https://goreportcard.com/report/github.com/foomo/testcontainers-go)
 [![GoDoc](https://img.shields.io/badge/GoDoc-📖-informational.svg?style=flat-square&logo=go)](https://godoc.org/github.com/foomo/testcontainers-go)
-[![Coverage](https://img.shields.io/codecov/c/foomo/testcontainers-go?style=flat-square&logo=github)](https://github.com/foomo/testcontainers-go/releases)
+[![Coverage](https://img.shields.io/codecov/c/github/foomo/testcontainers-go?style=flat-square&logo=github)](https://app.codecov.io/gh/foomo/testcontainers-go)
 [![GitHub Stars](https://img.shields.io/github/stars/foomo/testcontainers-go.svg?style=flat-square&logo=github)](https://github.com/foomo/testcontainers-go)
 
 <p align="center">

@@ -3,8 +3,10 @@ package temporal
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"github.com/testcontainers/testcontainers-go"
+	"github.com/testcontainers/testcontainers-go/wait"
 )
 
 type TemporalContainer struct {
@@ -17,6 +19,12 @@ func Run(ctx context.Context, img string, opts ...testcontainers.ContainerCustom
 		testcontainers.WithExposedPorts("7233/tcp", "8233/tcp", "8080/tcp"),
 		testcontainers.WithEntrypoint("/usr/local/bin/temporal"),
 		testcontainers.WithCmd("server", "start-dev", "--ip", "0.0.0.0"),
+		testcontainers.WithWaitStrategy(
+			wait.ForAll(
+				wait.ForListeningPort("7233/tcp"),
+				wait.ForLog("Temporal Server:").AsRegexp(),
+			).WithDeadline(2 * time.Minute),
+		),
 	}
 
 	moduleOpts = append(moduleOpts, opts...)

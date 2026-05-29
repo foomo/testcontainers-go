@@ -11,7 +11,7 @@ import (
 )
 
 func TestRun(t *testing.T) {
-	t.Skip("only for manual testing")
+	// t.Skip("only for manual testing")
 	t.Parallel()
 
 	container, err := temporal.Run(t.Context(), "temporalio/temporal:latest")

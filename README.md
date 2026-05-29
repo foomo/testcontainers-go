@@ -1,9 +1,10 @@
-[![Build Status](https://github.com/foomo/testcontainers-go/actions/workflows/test.yml/badge.svg?branch=main)](https://github.com/foomo/testcontainers-go/actions/workflows/test.yml)
-[![Go Report Card](https://goreportcard.com/badge/github.com/foomo/testcontainers-go)](https://goreportcard.com/report/github.com/foomo/testcontainers-go)
-[![GoDoc](https://godoc.org/github.com/foomo/testcontainers-go?status.svg)](https://godoc.org/github.com/foomo/testcontainers-go)
+[![Go Report Card](https://goreportcard.com/badge/github.com/foomo/testcontainers-go?style=flat-square)](https://goreportcard.com/report/github.com/foomo/testcontainers-go)
+[![GoDoc](https://img.shields.io/badge/GoDoc-📖-informational.svg?style=flat-square&logo=go)](https://godoc.org/github.com/foomo/testcontainers-go)
+[![Coverage](https://img.shields.io/codecov/c/foomo/testcontainers-go?style=flat-square&logo=github)](https://github.com/foomo/testcontainers-go/releases)
+[![GitHub Stars](https://img.shields.io/github/stars/foomo/testcontainers-go.svg?style=flat-square&logo=github)](https://github.com/foomo/testcontainers-go)
 
 <p align="center">
-  <img alt="testcontainers-go" src="docs/public/logo.png" height="400" width="400"/>
+  <img alt="testcontainers-go" src="docs/public/logo.png" width="400" height="400"/>
 </p>
 
 # testcontainers-go

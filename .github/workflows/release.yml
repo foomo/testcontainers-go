@@ -5,6 +5,14 @@ on:
     tags:
       - v*.*.*
   workflow_dispatch:
+    inputs:
+      tag:
+        description: Release tag
+        required: true
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 permissions:
   contents: read
@@ -12,6 +20,7 @@ permissions:
 jobs:
   release:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     permissions:
       contents: write   # goreleaser creates GitHub release + uploads artifacts
     steps:
@@ -35,3 +44,6 @@ jobs:
           args: release --clean
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Create submodule tags
+        run: make tag.submodules TAG=${{ github.event.inputs.tag || github.ref_name }}

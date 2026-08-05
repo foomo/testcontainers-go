@@ -16,6 +16,7 @@
 | Module   | Description                             | Import Path                                           |
 |----------|-----------------------------------------|-------------------------------------------------------|
 | Temporal | Testcontainers integration for Temporal | `github.com/foomo/testcontainers-go/modules/temporal` |
+| RustFS   | Testcontainers integration for RustFS   | `github.com/foomo/testcontainers-go/modules/rustfs`   |
 
 For documentation and usage examples, visit the [docs site](https://foomo.github.io/testcontainers-go/).
 

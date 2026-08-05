@@ -13,15 +13,8 @@ endef
 # --- Targets -----------------------------------------------------------------
 
 # This allows us to accept extra arguments
-%: go.work .mise .lefthook
+%: .mise .lefthook go.work
 	@:
-
-# Ensure file
-go.work:
-	@echo "〉initializing go work"
-	@go work init
-	@go work use -r .
-	@go work sync
 
 .PHONY: .mise
 # Install dependencies
@@ -36,11 +29,16 @@ endif
 .lefthook:
 	@lefthook install --reset-hooks-path
 
+# Ensure go.work file
+go.work:
+	@echo "〉initializing go work"
+	@go work init && go work use -r . && go work sync
+
 ### Tasks
 
 .PHONY: check
 ## Run lint & tests
-check: tidy generate lint.fix test audit
+check: tidy generate lint.fix test.race audit
 
 .PHONY: lint
 ## Run linter
@@ -60,16 +58,24 @@ generate:
 	@echo "〉go generate"
 	@go generate work
 
+
 .PHONY: test
 ## Run tests
 test:
 	@echo "〉go test"
-	@GO_TEST_TAGS=-skip go test -tags=safe -coverprofile=coverage.out work
+	@GO_TEST_TAGS=-skip go test -tags=safe -shuffle=on -coverprofile=coverage.out work
 
 .PHONY: test.race
 ## Run tests with -race
 test.race:
-	@GO_TEST_TAGS=-skip go test -tags=safe -coverprofile=coverage.out -race work
+	@echo "〉go test with -race"
+	@GO_TEST_TAGS=-skip go test -tags=safe -shuffle=on -coverprofile=coverage.out -race work
+
+.PHONY: test.update
+## Run tests with -update
+test.update:
+	@echo "〉go test with -update"
+	@GO_TEST_TAGS=-skip go test -tags=safe --shuffle=on coverprofile=coverage.out -update work
 
 ### Security
 
@@ -77,7 +83,6 @@ test.race:
 ## Run security audit
 audit:
 	@echo "〉security audit"
-	@go install golang.org/x/vuln/cmd/govulncheck@latest
 	@$(foreach mod,$(GOMODS), (cd $(dir $(mod)) && echo "📂 $(dir $(mod))" && govulncheck ./...) &&) true
 
 ### Dependencies
@@ -93,15 +98,26 @@ tidy:
 ## Show outdated direct dependencies
 outdated:
 	@echo "〉go mod outdated"
-	@$(foreach mod,$(GOMODS), (cd $(dir $(mod)) && echo "📂 $(dir $(mod))" && go list -u -m -json all | go-mod-outdated -update -direct) &&) true
+	@$(foreach mod,$(GOMODS), (cd $(dir $(mod)) && echo "📂 $(dir $(mod))" && GOWORK=off go-mod-upgrade --list) &&) true
 
 .PHONY: upgrade
 ## Show outdated direct dependencies
 upgrade:
 	@echo "〉go mod upgrade"
-	@rm -f go.work go.work.sum
-	@$(foreach mod,$(GOMODS), (cd $(dir $(mod)) && echo "📂 $(dir $(mod))" && go list -u -m -f '{{if and (not .Indirect) .Update}}{{.Path}}{{end}}' all | xargs -n1 -I{} go get {}@latest) &&) true
+	@$(foreach mod,$(GOMODS), (cd $(dir $(mod)) && echo "📂 $(dir $(mod))" && GOWORK=off go-mod-upgrade) &&) true
 	@$(MAKE) tidy
+
+### Release
+
+.PHONY: tag.submodules
+## Create tags for submodules TAG=1.0.0
+tag.submodules:
+	@echo "$(TAG)" | grep -qE '^v[0-9]+\.[0-9]+\.[0-9]+$$' || { echo "❌ TAG must be vX.Y.Z format"; exit 1; }
+	@git rev-parse "$(TAG)" >/dev/null 2>&1 || { echo "❌ Tag $(TAG) does not exist"; exit 1; }
+	@echo "🔖 Creating submodule tags..."
+	@find . -type f -name 'go.mod' -mindepth 2 -not -path './vendor/*' -exec sh -c 'dir=$$(dirname {} | sed "s|^\./||"); tag="$$dir/$(TAG)"; git rev-parse "$$tag" >/dev/null 2>&1 || { echo "🔖 $$tag"; git tag "$$tag"; }' \;
+	@echo "🔖 Pushing tags..."
+	@git push origin --tags
 
 ### Documentation
 
@@ -124,6 +140,11 @@ godocs:
 	@go doc -http
 
 ### Utils
+
+.PHONY: actionlint
+## Run actionlint
+actionlint:
+	@actionlint
 
 .PHONY: help
 # https://patorjk.com/software/taag/#p=display&f=Tmplr&t=testcontainers&x=none&v=4&h=4&w=80&we=false

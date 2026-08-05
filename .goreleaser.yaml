@@ -1,11 +1,16 @@
 # yaml-language-server: $schema=https://goreleaser.com/static/schema.json
 version: 2
 
-builds:
-  - skip: true
+project_name: testcontainers-go
 
 release:
   prerelease: auto
+
+changelog:
+  use: github-native
+
+builds:
+  - skip: true
 
 archives:
   - format: tar.gz
@@ -13,6 +18,3 @@ archives:
       - goos: windows
         format: zip
     files: [ LICENSE, README.md ]
-
-changelog:
-  use: github-native
